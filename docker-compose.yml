@@ -65,8 +65,8 @@ services:
       - BASE_URL=${FRONTEND_URL}
       - JWT_SECRET=${JWT_SECRET}
     labels:
-      - "--log.level=DEBUG" # 디버그 모드
-      - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory" # 디버그 모드
+      # - "--log.level=DEBUG" # 디버그 모드
+      # - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory" # 디버그 모드
       - "traefik.enable=true"
       - "traefik.http.routers.front.rule=Host(`${FRONTEND_DOMAIN}`)"
       - "traefik.http.routers.front.entrypoints=websecure"
