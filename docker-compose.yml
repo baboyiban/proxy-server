@@ -100,11 +100,12 @@ services:
       - "traefik.http.routers.mqtt-ws.entrypoints=websecure"
       - "traefik.http.routers.mqtt-ws.tls.certresolver=myresolver"
       - "traefik.http.services.mqtt-ws.loadbalancer.server.port=8083"
-      # MQTT TCP(8883, TLS)용 TCP 라우터
-      - "traefik.tcp.routers.mqtt-tcp.rule=HostSNI(`*`)"
-      - "traefik.tcp.routers.mqtt-tcp.entrypoints=mqtttls"
-      - "traefik.tcp.routers.mqtt-tcp.tls.certresolver=myresolver"
-      - "traefik.tcp.services.mqtt-tcp.loadbalancer.server.port=1883"
+      # MQTT WebSocket CORS 설정
+      - "traefik.http.middlewares.mqtt-cors.headers.accesscontrolalloworiginlist=*"
+      - "traefik.http.middlewares.mqtt-cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST,DELETE"
+      - "traefik.http.middlewares.mqtt-cors.headers.accesscontrolallowheaders=*"
+      - "traefik.http.middlewares.mqtt-cors.headers.accesscontrolmaxage=86400"
+      - "traefik.http.routers.mqtt-ws.middlewares=mqtt-cors@docker"
 
   redis:
     image: redis:7-alpine
