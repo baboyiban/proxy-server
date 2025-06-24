@@ -30,7 +30,7 @@ services:
     image: chl11wq12/kosta-2-backend:v1.0.0
     container_name: backend
     build:
-      context: backend
+      context: ./backend
       dockerfile: Dockerfile
     env_file: .env
     ports:
@@ -54,7 +54,7 @@ services:
     image: chl11wq12/kosta-2-frontend:v1.0.0
     container_name: frontend
     build:
-      context: frontend
+      context: ./frontend
       dockerfile: Dockerfile
     env_file: .env
     environment:
@@ -76,6 +76,43 @@ services:
     networks:
       - backend
 
+  mqtt:
+    platform: linux/amd64
+    image: chl11wq12/kosta-2-mqtt:v1.0.0
+    container_name: mqtt
+    build:
+      context: ./mqtt
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - REDIS_ADDR=redis:6379
+    ports:
+      - "1883:1883"
+      - "8083:8083"
+    depends_on:
+      - redis
+    networks:
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mqtt.rule=Host(`${MQTT_DOMAIN}`)"
+      - "traefik.http.routers.mqtt.entrypoints=websecure"
+      - "traefik.http.routers.mqtt.tls.certresolver=myresolver"
+      - "traefik.http.services.mqtt.loadbalancer.server.port=8083"
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - backend
+
 networks:
   backend:
     driver: bridge
+
+volumes:
+  redis-data:

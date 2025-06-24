@@ -4,3 +4,6 @@
 [submodule "frontend"]
 	path = frontend
 	url = https://github.com/baboyiban/nextjs-app
+[submodule "mqtt"]
+	path = mqtt
+	url = https://github.com/baboyiban/mqtt-server
