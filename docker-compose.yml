@@ -9,6 +9,7 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.mqtttls.address=:8883" # MQTT TCP용 TCP entrypoint
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.myresolver.acme.email=${EMAIL}"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
@@ -17,6 +18,7 @@ services:
       - "80:80"
       - "443:443"
       - "8080:8080" # Traefik 대시보드
+      - "8883:8883" # MQTT TCP TLS
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./letsencrypt:/letsencrypt"
@@ -65,8 +67,6 @@ services:
       - BASE_URL=${FRONTEND_URL}
       - JWT_SECRET=${JWT_SECRET}
     labels:
-      # - "--log.level=DEBUG" # 디버그 모드
-      # - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory" # 디버그 모드
       - "traefik.enable=true"
       - "traefik.http.routers.front.rule=Host(`${FRONTEND_DOMAIN}`)"
       - "traefik.http.routers.front.entrypoints=websecure"
@@ -95,10 +95,16 @@ services:
       - backend
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.mqtt.rule=Host(`${MQTT_DOMAIN}`)"
-      - "traefik.http.routers.mqtt.entrypoints=websecure"
-      - "traefik.http.routers.mqtt.tls.certresolver=myresolver"
-      - "traefik.http.services.mqtt.loadbalancer.server.port=8083"
+      # WebSocket(wss://, 443)용 HTTP 라우터
+      - "traefik.http.routers.mqtt-ws.rule=Host(`${MQTT_DOMAIN}`)"
+      - "traefik.http.routers.mqtt-ws.entrypoints=websecure"
+      - "traefik.http.routers.mqtt-ws.tls.certresolver=myresolver"
+      - "traefik.http.services.mqtt-ws.loadbalancer.server.port=8083"
+      # MQTT TCP(8883, TLS)용 TCP 라우터
+      - "traefik.tcp.routers.mqtt-tcp.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.mqtt-tcp.entrypoints=mqtttls"
+      - "traefik.tcp.routers.mqtt-tcp.tls.certresolver=myresolver"
+      - "traefik.tcp.services.mqtt-tcp.loadbalancer.server.port=1883"
 
   redis:
     image: redis:7-alpine
