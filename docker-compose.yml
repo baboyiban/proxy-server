@@ -95,12 +95,13 @@ services:
       - backend
     labels:
       - "traefik.enable=true"
-      # WebSocket(wss://, 443)용 HTTP 라우터
-      - "traefik.http.routers.mqtt-ws.rule=Host(`${MQTT_DOMAIN}`)"
+      # WebSocket(wss) 라우터 규칙에 Path를 명시적으로 추가
+      - "traefik.http.routers.mqtt-ws.rule=Host(`${MQTT_DOMAIN}`) && Path(`/mqtt`)"
+      # --- 여기까지 ---
       - "traefik.http.routers.mqtt-ws.entrypoints=websecure"
       - "traefik.http.routers.mqtt-ws.tls.certresolver=myresolver"
       - "traefik.http.services.mqtt-ws.loadbalancer.server.port=8083"
-      # MQTT WebSocket CORS 설정
+      # WebSocket WebSocket CORS 설정 (기존과 동일)
       - "traefik.http.middlewares.mqtt-cors.headers.accesscontrolalloworiginlist=*"
       - "traefik.http.middlewares.mqtt-cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST,DELETE"
       - "traefik.http.middlewares.mqtt-cors.headers.accesscontrolallowheaders=*"
