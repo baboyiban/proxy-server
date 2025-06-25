@@ -95,18 +95,23 @@ services:
       - backend
     labels:
       - "traefik.enable=true"
-      # WebSocket(wss) 라우터 규칙에 Path를 명시적으로 추가
+      # WebSocket(wss)용 HTTP 라우터
       - "traefik.http.routers.mqtt-ws.rule=Host(`${MQTT_DOMAIN}`) && Path(`/mqtt`)"
-      # --- 여기까지 ---
       - "traefik.http.routers.mqtt-ws.entrypoints=websecure"
       - "traefik.http.routers.mqtt-ws.tls.certresolver=myresolver"
       - "traefik.http.services.mqtt-ws.loadbalancer.server.port=8083"
-      # WebSocket WebSocket CORS 설정 (기존과 동일)
+      # WebSocket CORS 설정
       - "traefik.http.middlewares.mqtt-cors.headers.accesscontrolalloworiginlist=*"
       - "traefik.http.middlewares.mqtt-cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST,DELETE"
       - "traefik.http.middlewares.mqtt-cors.headers.accesscontrolallowheaders=*"
       - "traefik.http.middlewares.mqtt-cors.headers.accesscontrolmaxage=86400"
       - "traefik.http.routers.mqtt-ws.middlewares=mqtt-cors@docker"
+      # --- 추가된 부분: MQTTS(TCP)용 라우터 및 서비스 ---
+      - "traefik.tcp.routers.mqtt-tcp.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.mqtt-tcp.entrypoints=mqtttls"
+      - "traefik.tcp.routers.mqtt-tcp.tls=true"
+      - "traefik.tcp.routers.mqtt-tcp.service=mqtt-tcp-svc"
+      - "traefik.tcp.services.mqtt-tcp-svc.loadbalancer.server.port=1883"
 
   redis:
     image: redis:7-alpine
